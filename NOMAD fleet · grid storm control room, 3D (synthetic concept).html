@@ -1,0 +1,365 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>NOMAD fleet · grid storm control room (synthetic concept)</title>
+<style>
+:root{--bg:#060b13;--pn:#0c1522;--ln:#1b2a40;--tx:#dbe7f5;--mu:#7d90ab;--ac:#67e8f9;--am:#fbbf24;--rd:#fb7185;--ok:#4ade80}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--tx);font:12.5px/1.45 ui-sans-serif,system-ui,Segoe UI,Roboto,sans-serif}
+.mono{font-family:ui-monospace,Menlo,Consolas,monospace}
+header{display:flex;gap:12px;align-items:center;padding:8px 14px;border-bottom:1px solid var(--ln);flex-wrap:wrap;background:#081120}
+h1{font-size:14px;margin:0;font-weight:600;letter-spacing:.02em}
+.tag{font-size:10px;letter-spacing:.08em;color:var(--am);border:1px solid var(--am);border-radius:4px;padding:1px 6px;white-space:nowrap}
+.live{font-size:10px;letter-spacing:.08em;color:var(--ok);display:flex;align-items:center;gap:6px;white-space:nowrap}
+.live:before{content:"";width:7px;height:7px;border-radius:50%;background:var(--ok);animation:bl 1.2s infinite}
+@keyframes bl{50%{opacity:.2}}
+.clock{font:600 20px ui-monospace,Menlo,monospace;margin-left:auto}
+button,select{background:var(--pn);color:var(--tx);border:1px solid var(--ln);border-radius:6px;padding:5px 9px;font:inherit;cursor:pointer}
+input[type=range]{flex:1;min-width:180px;accent-color:var(--ac)}
+main{display:grid;grid-template-columns:262px minmax(0,1fr) 320px;gap:10px;padding:10px}
+.pn{background:var(--pn);border:1px solid var(--ln);border-radius:10px;padding:10px;min-width:0}
+h2{font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--mu);margin:0 0 7px;font-weight:600}
+.dc{border:1px solid var(--ln);border-radius:8px;padding:7px;margin-bottom:6px;cursor:pointer}
+.dc:hover,.dc.sel{border-color:var(--ac)}
+.row{display:flex;justify-content:space-between;align-items:center;gap:6px}
+.pill{font-size:9.5px;font-weight:700;letter-spacing:.05em;padding:2px 6px;border-radius:4px;background:#17263d;white-space:nowrap}
+.bar{height:4px;background:#17263d;border-radius:2px;overflow:hidden;margin:5px 0 3px}.bar i{display:block;height:100%}
+.rp{display:block;width:100%;text-align:left;margin-bottom:5px;padding:5px 7px;font-size:11.5px}.rp.on{border-color:var(--am)}
+.mapwrap{position:relative}
+svg#map{width:100%;height:auto;display:block;border-radius:8px;border:1px solid var(--ln);background:radial-gradient(ellipse at 50% 45%,#0b1626,#04080f)}
+.scan:after{content:"";position:absolute;inset:0;border-radius:8px;pointer-events:none;background:repeating-linear-gradient(to bottom,rgba(255,255,255,.015) 0 1px,transparent 1px 3px)}
+#coord{position:absolute;left:10px;bottom:8px;font:11px ui-monospace,Menlo,monospace;color:var(--mu);background:rgba(4,8,15,.8);padding:2px 6px;border-radius:4px}
+.muted{color:var(--mu)}
+.kv{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:6px}
+.kv div{background:#0a1424;border:1px solid var(--ln);border-radius:6px;padding:5px 7px}
+.kv small{display:block;color:var(--mu);font-size:9.5px;text-transform:uppercase;letter-spacing:.06em}
+.kv b{font:600 13px ui-monospace,Menlo,monospace}
+.alert{border:1px solid var(--rd);background:rgba(251,113,133,.08);border-radius:8px;padding:8px;margin:7px 0}
+.hyp{font-size:9.5px;color:var(--am);text-transform:uppercase;letter-spacing:.08em}
+.badge{display:inline-block;font-weight:700;font-size:10.5px;letter-spacing:.04em;padding:3px 7px;border-radius:5px;margin:4px 0}
+.sg{fill:none;stroke:#2a3b55;stroke-width:.9;stroke-linecap:round;cursor:pointer}
+.sg.h{stroke:#22d3ee;stroke-width:2;filter:url(#glow)}
+.sg.w{stroke:var(--am);stroke-width:1.8}.sg.a{stroke:var(--rd);stroke-width:2.6}
+.sg.o{stroke:#4ade80;stroke-width:1.5}.sg.d{stroke:#64748b;stroke-dasharray:2 1.5;stroke-width:1.8}
+.sg.sel{stroke:#fff;stroke-width:3.4;opacity:.9}
+path.rep{fill:none;stroke:#7c5a14;stroke-width:.5;stroke-dasharray:1.5 1.5;pointer-events:stroke}
+path.rep.on{stroke:var(--am);stroke-width:1.1}
+path.storm{fill:url(#hatch);stroke:var(--am);stroke-width:.4;stroke-dasharray:3 2;opacity:.7}
+.gr{stroke:#14223a;stroke-width:.4}
+.sub{fill:#94a3b8}.sublbl{fill:#64748b;font:3px ui-monospace,monospace}
+.ring{fill:none;stroke:var(--rd);stroke-width:.7;animation:bl 1.4s infinite}
+.rot{transform-box:fill-box;transform-origin:center;animation:sp .25s linear infinite}
+@keyframes sp{to{transform:rotate(360deg)}}
+.lbl{font:700 3.6px ui-monospace,monospace;paint-order:stroke;stroke:#04080f;stroke-width:.9px}
+.tele-sp{fill:none;stroke:var(--ac);stroke-width:1.1}
+.badge2{font-size:10px;color:var(--ac);border:1px solid #155e75;border-radius:4px;padding:1px 6px}
+.bottom{display:grid;grid-template-columns:minmax(0,1.5fr) minmax(0,1fr);gap:10px;padding:0 10px 10px}
+#gantt{width:100%;height:auto;display:block}
+.ax{fill:var(--mu);font:9px ui-monospace,monospace}.gl{stroke:#16233a;stroke-width:.6}.rt{fill:var(--am);font:9px ui-monospace,monospace}
+.dl{font:700 11px ui-monospace,monospace}.ch{fill:#13202f;stroke:#3b4d68;stroke-dasharray:3 2}.cur{stroke:#fff;stroke-dasharray:2 2}
+ul.log{list-style:none;margin:0;padding:0;max-height:200px;overflow:auto}
+ul.log li{padding:4px 0;border-bottom:1px solid var(--ln);font-size:11.5px}
+ul.log b{font:600 11px ui-monospace,monospace;margin-right:6px;padding-left:6px;border-left:3px solid var(--mu)}
+details{font-size:11.5px;margin-top:8px}details summary{cursor:pointer;color:var(--mu)}
+details li{margin:3px 0}
+@media(max-width:1100px){main{grid-template-columns:1fr}.bottom{grid-template-columns:1fr}}
+</style></head>
+<body>
+<header>
+  <h1>NOMAD fleet · grid storm control room</h1>
+  <span class="tag">CONCEPT · SYNTHETIC EXERCISE</span>
+  <span class="live">LIVE · SIMULATED FEED</span>
+  <button id="play">▶ Play</button>
+  <select id="spd" aria-label="Playback speed"><option value="2">2 min/s</option><option value="6" selected>6 min/s</option><option value="20">20 min/s</option></select>
+  <input type="range" id="tt" min="0" max="240" step=".5" value="0" aria-label="Scenario time">
+  <div class="clock mono" id="clk">T+00:00</div>
+</header>
+<main>
+  <section class="pn">
+    <h2>Fleet · 5 NOMAD units</h2>
+    <div id="fleet"></div>
+    <div class="muted" id="avail" style="margin:4px 0 8px;font-size:11.5px"></div>
+    <h2>Reports · all six available at start</h2>
+    <div id="reps"></div>
+    <details><summary>Assumptions and limits</summary>
+      <ul class="muted" style="padding-left:16px">
+        <li>Cruise 36 km/h (10 m/s), an assumption. Routes follow the dataset's real node connections; line lengths come from the dataset.</li>
+        <li>Endurance 30 min per sortie. Each sortie starts at full endurance. Recharge 3 h on an energized line.</li>
+        <li>Only LINE_024 is known de-energized. Other lines are assumed live but not verified.</li>
+        <li>On a de-energized line the unit hover-checks only: no perch, no charge.</li>
+        <li>Line geometry is simplified to six vertices per line for the browser. Telemetry values are simulated, not measured.</li>
+        <li>Not for live use. Flying near energized lines needs regulatory approval and trained crews.</li>
+      </ul>
+    </details>
+  </section>
+  <section class="pn">
+    <h2>Study area · mapped 110 / 380 kV network</h2>
+    <div class="mapwrap scan">
+      <svg id="map" style="display:none" viewBox="-6 -6 300 302" role="img" aria-label="Network control map"></svg><div id="g3" style="position:relative;width:100%;height:600px;border-radius:8px;border:1px solid var(--ln);overflow:hidden"></div>
+      <div id="coord">--</div>
+    </div>
+    <div class="muted" style="font-size:11px;margin-top:6px">Mapped topology, not live status. Click a line to inspect it, or click a drone to follow its telemetry.</div>
+  </section>
+  <section class="pn" id="side"></section>
+</main>
+<section class="bottom">
+  <div class="pn"><h2>Fleet timeline · flying, on station, charging</h2><svg id="gantt" viewBox="0 0 800 196"></svg></div>
+  <div class="pn"><h2>Event log · dispatch, detections, alerts, reports</h2><ul class="log" id="log"></ul></div>
+</section>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script>
+const D={"segs":[{"id":"LINE_001","fi":"SUBSTATION_07","ti":"NODE_027","c":"01","f":"Umspannwerk Oberottmarshausen","t":"NODE_027","kv":380.0,"km":0.153,"pts":[[10.838,48.237],[10.8385,48.2357]]},{"id":"LINE_002","fi":"SUBSTATION_06","ti":"NODE_022","c":"01","f":"Umspannwerk Lagerlechfeld","t":"NODE_022","kv":110.0,"km":3.771,"pts":[[10.8414,48.1849],[10.8406,48.1942],[10.8376,48.199],[10.8331,48.2062],[10.8304,48.2106],[10.8269,48.2162]]},{"id":"LINE_003","fi":"NODE_021","ti":"NODE_023","c":"01","f":"NODE_021","t":"NODE_023","kv":110.0,"km":6.812,"pts":[[10.8071,48.264],[10.8094,48.273],[10.8144,48.2841],[10.82,48.299],[10.8244,48.311],[10.8293,48.3211]]},{"id":"LINE_004","fi":"NODE_026","ti":"NODE_019","c":"01","f":"NODE_026","t":"NODE_019","kv":380.0,"km":16.429,"pts":[[10.8356,48.2383],[10.8089,48.2176],[10.7932,48.1948],[10.7816,48.163],[10.7709,48.1337],[10.7603,48.1042]]},{"id":"LINE_005","fi":"SUBSTATION_10","ti":"NODE_044","c":"03","f":"Übernahmestelle Göggingen;Umspannwerk Göggingen","t":"NODE_044","kv":110.0,"km":0.197,"pts":[[10.8789,48.3264],[10.88,48.328]]},{"id":"LINE_006","fi":"SUBSTATION_10","ti":"NODE_043","c":"03","f":"Übernahmestelle Göggingen;Umspannwerk Göggingen","t":"NODE_043","kv":110.0,"km":0.119,"pts":[[10.8789,48.3264],[10.8796,48.3259],[10.88,48.3256]]},{"id":"LINE_007","fi":"SUBSTATION_13","ti":"NODE_025","c":"01","f":"Umspannwerk Stadtbergen","t":"NODE_025","kv":110.0,"km":0.413,"pts":[[10.8397,48.3774],[10.8372,48.3782],[10.8347,48.3791]]},{"id":"LINE_008","fi":"NODE_025","ti":"NODE_024","c":"01","f":"NODE_025","t":"NODE_024","kv":110.0,"km":0.134,"pts":[[10.8347,48.3791],[10.8335,48.38]]},{"id":"LINE_009","fi":"NODE_004","ti":"NODE_003","c":"04","f":"NODE_004","t":"NODE_003","kv":110.0,"km":1.296,"pts":[[10.4666,48.38],[10.4638,48.3793],[10.4605,48.3785],[10.4547,48.3771],[10.4523,48.3768],[10.45,48.3765]]},{"id":"LINE_010","fi":"NODE_008","ti":"NODE_007","c":"05","f":"NODE_008","t":"NODE_007","kv":110.0,"km":1.041,"pts":[[10.5483,48.38],[10.5481,48.38],[10.547,48.3799],[10.5414,48.3797],[10.5361,48.3797],[10.5343,48.38]]},{"id":"LINE_011","fi":"NODE_020","ti":"NODE_018","c":"06","f":"NODE_020","t":"NODE_018","kv":110.0,"km":1.488,"pts":[[10.7778,48.38],[10.7746,48.3797],[10.7698,48.379],[10.7633,48.3783],[10.7603,48.3794],[10.7586,48.38]]},{"id":"LINE_012","fi":"NODE_033","ti":"NODE_032","c":"01","f":"NODE_033","t":"NODE_032","kv":110.0,"km":0.23,"pts":[[10.844,48.3779],[10.8439,48.3786],[10.8437,48.3798],[10.8437,48.38]]},{"id":"LINE_013","fi":"SUBSTATION_13","ti":"NODE_033","c":"01","f":"Umspannwerk Stadtbergen","t":"NODE_033","kv":110.0,"km":0.294,"pts":[[10.8403,48.3771],[10.8418,48.3774],[10.8425,48.3776],[10.844,48.3779]]},{"id":"LINE_014","fi":"SUBSTATION_07","ti":"NODE_026","c":"01","f":"Umspannwerk Oberottmarshausen","t":"NODE_026","kv":380.0,"km":0.347,"pts":[[10.8384,48.2381],[10.8392,48.2385],[10.8356,48.2383]]},{"id":"LINE_015","fi":"NODE_013","ti":"NODE_016","c":"01","f":"NODE_013","t":"NODE_016","kv":110.0,"km":11.132,"pts":[[10.6482,48.1124],[10.6643,48.1275],[10.6837,48.1457],[10.7015,48.1619],[10.7197,48.1783],[10.7374,48.1928]]},{"id":"LINE_016","fi":"NODE_019","ti":"NODE_017","c":"01","f":"NODE_019","t":"NODE_017","kv":380.0,"km":1.627,"pts":[[10.7603,48.1042],[10.7589,48.1005],[10.7576,48.0969],[10.7565,48.0938],[10.7554,48.0908],[10.7557,48.09]]},{"id":"LINE_017","fi":"NODE_030","ti":"NODE_031","c":"01","f":"NODE_030","t":"NODE_031","kv":110.0,"km":0.482,"pts":[[10.8403,48.2336],[10.8424,48.2359],[10.8434,48.2373]]},{"id":"LINE_018","fi":"NODE_027","ti":"NODE_030","c":"01","f":"NODE_027","t":"NODE_030","kv":380.0,"km":0.268,"pts":[[10.8385,48.2357],[10.8403,48.2336]]},{"id":"LINE_019","fi":"NODE_022","ti":"NODE_034","c":"01","f":"NODE_022","t":"NODE_034","kv":110.0,"km":2.708,"pts":[[10.8269,48.2162],[10.8303,48.2205],[10.8342,48.2254],[10.8379,48.23],[10.8411,48.234],[10.8441,48.2377]]},{"id":"LINE_020","fi":"NODE_027","ti":"SUBSTATION_07","c":"01","f":"NODE_027","t":"Umspannwerk Oberottmarshausen","kv":380.0,"km":0.13,"pts":[[10.8385,48.2357],[10.8388,48.2368]]},{"id":"LINE_021","fi":"NODE_030","ti":"NODE_041","c":"01","f":"NODE_030","t":"NODE_041","kv":380.0,"km":3.049,"pts":[[10.8403,48.2336],[10.8476,48.2315],[10.8558,48.2311],[10.8652,48.2322],[10.8744,48.2333],[10.88,48.2339]]},{"id":"LINE_022","fi":"NODE_042","ti":"NODE_035","c":"01","f":"NODE_042","t":"NODE_035","kv":110.0,"km":5.866,"pts":[[10.88,48.2833],[10.8731,48.2735],[10.867,48.2634],[10.8603,48.2559],[10.852,48.2466],[10.8446,48.2384]]},{"id":"LINE_023","fi":"SUBSTATION_07","ti":"NODE_028","c":"01","f":"Umspannwerk Oberottmarshausen","t":"NODE_028","kv":110.0,"km":0.226,"pts":[[10.8425,48.2383],[10.8423,48.2383],[10.842,48.2384],[10.8407,48.2387],[10.8405,48.2388],[10.8396,48.2388]]},{"id":"LINE_024","fi":"SUBSTATION_07","ti":"SUBSTATION_01","c":"01","f":"Umspannwerk Oberottmarshausen","t":"UW Balzhausen","kv":110.0,"km":26.838,"pts":[[10.8423,48.2391],[10.7774,48.2447],[10.7069,48.2547],[10.6316,48.2535],[10.5649,48.2419],[10.4939,48.2479]]},{"id":"LINE_025","fi":"NODE_009","ti":"SUBSTATION_05","c":"01","f":"NODE_009","t":"Umspannwerk Walkertshofen","kv":110.0,"km":0.056,"pts":[[10.5992,48.2102],[10.5992,48.2107]]},{"id":"LINE_026","fi":"NODE_009","ti":"SUBSTATION_15","c":"01","f":"NODE_009","t":"Umspannwerk Schwabmünchen","kv":110.0,"km":10.845,"pts":[[10.5992,48.2102],[10.6315,48.2104],[10.6569,48.2148],[10.6827,48.2063],[10.7041,48.1975],[10.7328,48.1923]]},{"id":"LINE_027","fi":"NODE_019","ti":"SUBSTATION_02","c":"01","f":"NODE_019","t":"Umspannwerk Gennach","kv":110.0,"km":4.833,"pts":[[10.7603,48.1042],[10.7484,48.1046],[10.7335,48.105],[10.724,48.1053],[10.71,48.1042],[10.6993,48.0991]]},{"id":"LINE_028","fi":"SUBSTATION_12","ti":"NODE_025","c":"01","f":"Umspannwerk Leitershofen","t":"NODE_025","kv":110.0,"km":4.059,"pts":[[10.847,48.345],[10.8469,48.3525],[10.843,48.3562],[10.8375,48.3614],[10.8363,48.3694],[10.8347,48.3791]]},{"id":"LINE_029","fi":"NODE_006","ti":"NODE_002","c":"01","f":"NODE_006","t":"NODE_002","kv":110.0,"km":3.433,"pts":[[10.492,48.2477],[10.4854,48.2513],[10.475,48.2553],[10.4675,48.2561],[10.4561,48.2573],[10.45,48.258]]},{"id":"LINE_030","fi":"NODE_015","ti":"NODE_016","c":"01","f":"NODE_015","t":"NODE_016","kv":110.0,"km":0.225,"pts":[[10.7345,48.1921],[10.7374,48.1928]]},{"id":"LINE_031","fi":"SUBSTATION_09","ti":"NODE_012","c":"01","f":"SUBSTATION_09","t":"NODE_012","kv":110.0,"km":7.814,"pts":[[10.7254,48.3333],[10.7095,48.343],[10.6969,48.3523],[10.6811,48.356],[10.6593,48.3628],[10.639,48.3688]]},{"id":"LINE_032","fi":"NODE_012","ti":"NODE_014","c":"01","f":"NODE_012","t":"NODE_014","kv":110.0,"km":1.724,"pts":[[10.639,48.3688],[10.6419,48.3707],[10.6469,48.3743],[10.6495,48.3761],[10.6544,48.3794],[10.655,48.38]]},{"id":"LINE_033","fi":"NODE_036","ti":"SUBSTATION_03","c":"07","f":"NODE_036","t":"SUBSTATION_03","kv":110.0,"km":0.254,"pts":[[10.8583,48.1141],[10.8586,48.1141],[10.8604,48.1142],[10.8608,48.114],[10.8613,48.1137],[10.8614,48.1137]]},{"id":"LINE_034","fi":"SUBSTATION_04","ti":"NODE_039","c":"02","f":"Umspannwerk","t":"NODE_039","kv":110.0,"km":0.803,"pts":[[10.8678,48.1488],[10.8679,48.1487],[10.8682,48.1486],[10.871,48.1473],[10.8737,48.1459],[10.8766,48.1445]]},{"id":"LINE_035","fi":"NODE_010","ti":"NODE_005","c":"01","f":"NODE_010","t":"NODE_005","kv":110.0,"km":14.08,"pts":[[10.6051,48.3454],[10.5802,48.3313],[10.5541,48.3098],[10.5251,48.296],[10.5048,48.2738],[10.4788,48.2545]]},{"id":"LINE_036","fi":"NODE_016","ti":"NODE_022","c":"01","f":"NODE_016","t":"NODE_022","kv":110.0,"km":7.161,"pts":[[10.7374,48.1928],[10.7568,48.197],[10.7746,48.201],[10.7938,48.2055],[10.8112,48.2112],[10.8269,48.2162]]},{"id":"LINE_037","fi":"NODE_037","ti":"NODE_039","c":"02","f":"NODE_037","t":"NODE_039","kv":110.0,"km":3.822,"pts":[[10.8586,48.1141],[10.8575,48.12],[10.8588,48.1264],[10.8626,48.1318],[10.8704,48.1389],[10.8766,48.1445]]},{"id":"LINE_038","fi":"NODE_038","ti":"NODE_037","c":"02","f":"NODE_038","t":"NODE_037","kv":110.0,"km":2.701,"pts":[[10.8633,48.09],[10.8628,48.0927],[10.8625,48.0941],[10.8613,48.1006],[10.8599,48.1075],[10.8586,48.1141]]},{"id":"LINE_039","fi":"NODE_023","ti":"NODE_033","c":"01","f":"NODE_023","t":"NODE_033","kv":110.0,"km":6.69,"pts":[[10.8293,48.3211],[10.838,48.3332],[10.8448,48.3462],[10.8492,48.3583],[10.8486,48.3679],[10.844,48.3779]]},{"id":"LINE_040","fi":"SUBSTATION_01","ti":"NODE_006","c":"01","f":"UW Balzhausen","t":"NODE_006","kv":110.0,"km":0.097,"pts":[[10.4933,48.2476],[10.492,48.2477]]},{"id":"LINE_041","fi":"SUBSTATION_01","ti":"NODE_005","c":"01","f":"UW Balzhausen","t":"NODE_005","kv":110.0,"km":1.364,"pts":[[10.4933,48.2471],[10.4922,48.2472],[10.4885,48.2492],[10.4847,48.2513],[10.4813,48.2532],[10.4788,48.2545]]},{"id":"LINE_042","fi":"NODE_005","ti":"NODE_001","c":"01","f":"NODE_005","t":"NODE_001","kv":110.0,"km":5.487,"pts":[[10.4788,48.2545],[10.4703,48.2464],[10.4647,48.2379],[10.4597,48.2283],[10.4546,48.2184],[10.45,48.2095]]},{"id":"LINE_043","fi":"NODE_028","ti":"NODE_026","c":"01","f":"NODE_028","t":"NODE_026","kv":110.0,"km":0.306,"pts":[[10.8396,48.2388],[10.8356,48.2383]]},{"id":"LINE_044","fi":"SUBSTATION_07","ti":"NODE_028","c":"01","f":"Umspannwerk Oberottmarshausen","t":"NODE_028","kv":110.0,"km":0.2,"pts":[[10.8423,48.2391],[10.8396,48.2388]]},{"id":"LINE_045","fi":"NODE_031","ti":"SUBSTATION_07","c":"01","f":"NODE_031","t":"Umspannwerk Oberottmarshausen","kv":110.0,"km":0.12,"pts":[[10.8434,48.2373],[10.8424,48.2376],[10.8421,48.2376],[10.842,48.2377],[10.8419,48.2377]]},{"id":"LINE_046","fi":"NODE_035","ti":"SUBSTATION_07","c":"01","f":"NODE_035","t":"Umspannwerk Oberottmarshausen","kv":110.0,"km":0.134,"pts":[[10.8446,48.2384],[10.8429,48.2387]]},{"id":"LINE_047","fi":"NODE_031","ti":"SUBSTATION_07","c":"01","f":"NODE_031","t":"Umspannwerk Oberottmarshausen","kv":110.0,"km":0.12,"pts":[[10.8434,48.2373],[10.8425,48.2376],[10.8422,48.2377],[10.842,48.2377],[10.8419,48.2378]]},{"id":"LINE_048","fi":"NODE_034","ti":"SUBSTATION_07","c":"01","f":"NODE_034","t":"Umspannwerk Oberottmarshausen","kv":110.0,"km":0.15,"pts":[[10.8441,48.2377],[10.8426,48.2382],[10.8424,48.2382],[10.8423,48.2382],[10.8422,48.2383]]},{"id":"LINE_049","fi":"NODE_035","ti":"SUBSTATION_07","c":"01","f":"NODE_035","t":"Umspannwerk Oberottmarshausen","kv":110.0,"km":0.138,"pts":[[10.8446,48.2384],[10.8431,48.239]]},{"id":"LINE_050","fi":"NODE_034","ti":"SUBSTATION_07","c":"01","f":"NODE_034","t":"Umspannwerk Oberottmarshausen","kv":110.0,"km":0.151,"pts":[[10.8441,48.2377],[10.8425,48.238],[10.8423,48.238],[10.8422,48.2381],[10.8421,48.2381]]},{"id":"LINE_051","fi":"SUBSTATION_15","ti":"NODE_015","c":"01","f":"Umspannwerk Schwabmünchen","t":"NODE_015","kv":110.0,"km":0.1,"pts":[[10.7332,48.192],[10.7345,48.1921]]},{"id":"LINE_052","fi":"SUBSTATION_15","ti":"NODE_015","c":"01","f":"Umspannwerk Schwabmünchen","t":"NODE_015","kv":110.0,"km":0.096,"pts":[[10.7332,48.192],[10.7345,48.1921]]},{"id":"LINE_053","fi":"SUBSTATION_11","ti":"NODE_010","c":"01","f":"SUBSTATION_11","t":"NODE_010","kv":110.0,"km":0.361,"pts":[[10.6032,48.3484],[10.6051,48.3454]]},{"id":"LINE_054","fi":"NODE_029","ti":"SUBSTATION_12","c":"01","f":"NODE_029","t":"Umspannwerk Leitershofen","kv":110.0,"km":13.258,"pts":[[10.84,48.2396],[10.8505,48.2595],[10.8635,48.2815],[10.8584,48.3007],[10.8422,48.3218],[10.847,48.345]]},{"id":"LINE_055","fi":"NODE_029","ti":"SUBSTATION_07","c":"01","f":"NODE_029","t":"Umspannwerk Oberottmarshausen","kv":110.0,"km":0.178,"pts":[[10.84,48.2396],[10.8424,48.2393]]},{"id":"LINE_056","fi":"SUBSTATION_07","ti":"SUBSTATION_08","c":"01","f":"Umspannwerk Oberottmarshausen","t":"Umspannwerk Bobingen","kv":110.0,"km":4.281,"pts":[[10.8425,48.2395],[10.8337,48.2433],[10.8209,48.2492],[10.8123,48.2537],[10.8024,48.26],[10.8068,48.2635]]},{"id":"LINE_057","fi":"NODE_013","ti":"SUBSTATION_14","c":"01","f":"NODE_013","t":"SUBSTATION_14","kv":110.0,"km":0.988,"pts":[[10.6482,48.1124],[10.6509,48.112],[10.6543,48.1115],[10.6577,48.111],[10.6611,48.1105]]},{"id":"LINE_058","fi":"SUBSTATION_05","ti":"NODE_009","c":"01","f":"Umspannwerk Walkertshofen","t":"NODE_009","kv":110.0,"km":0.057,"pts":[[10.599,48.2107],[10.5992,48.2102]]},{"id":"LINE_059","fi":"NODE_039","ti":"NODE_040","c":"02","f":"NODE_039","t":"NODE_040","kv":110.0,"km":0.435,"pts":[[10.8766,48.1445],[10.8786,48.1464],[10.88,48.1477]]},{"id":"LINE_060","fi":"SUBSTATION_08","ti":"NODE_021","c":"01","f":"Umspannwerk Bobingen","t":"NODE_021","kv":110.0,"km":0.068,"pts":[[10.8068,48.2635],[10.8071,48.264]]},{"id":"LINE_061","fi":"SUBSTATION_08","ti":"NODE_021","c":"01","f":"Umspannwerk Bobingen","t":"NODE_021","kv":110.0,"km":0.043,"pts":[[10.8067,48.2638],[10.8067,48.2638],[10.8069,48.264],[10.8071,48.264]]},{"id":"LINE_062","fi":"NODE_012","ti":"NODE_010","c":"01","f":"NODE_012","t":"NODE_010","kv":110.0,"km":3.617,"pts":[[10.639,48.3688],[10.6311,48.3633],[10.6259,48.3597],[10.6178,48.3542],[10.6125,48.3505],[10.6051,48.3454]]},{"id":"LINE_063","fi":"NODE_011","ti":"NODE_013","c":"01","f":"NODE_011","t":"NODE_013","kv":110.0,"km":2.781,"pts":[[10.6338,48.09],[10.6354,48.0937],[10.6377,48.0993],[10.6388,48.1021],[10.6411,48.1075],[10.6482,48.1124]]},{"id":"LINE_064","fi":"SUBSTATION_01","ti":"NODE_009","c":"01","f":"UW Balzhausen","t":"NODE_009","kv":110.0,"km":10.07,"pts":[[10.494,48.2473],[10.519,48.2422],[10.532,48.2276],[10.5472,48.2106],[10.5699,48.2072],[10.5992,48.2102]]}],"subs":[{"id":"SUBSTATION_01","name":"UW Balzhausen","lon":10.493719579869857,"lat":48.24746207124238},{"id":"SUBSTATION_02","name":"Umspannwerk Gennach","lon":10.69937632567656,"lat":48.09893374117932},{"id":"SUBSTATION_03","name":"","lon":10.861456609608574,"lat":48.11384007587358},{"id":"SUBSTATION_04","name":"Umspannwerk","lon":10.867777660517536,"lat":48.14862019635886},{"id":"SUBSTATION_05","name":"Umspannwerk Walkertshofen","lon":10.599034312736272,"lat":48.21069271558643},{"id":"SUBSTATION_06","name":"Umspannwerk Lagerlechfeld","lon":10.841115476244365,"lat":48.18479887929815},{"id":"SUBSTATION_07","name":"Umspannwerk Oberottmarshausen","lon":10.840259167672176,"lat":48.237798155978474},{"id":"SUBSTATION_08","name":"Umspannwerk Bobingen","lon":10.806848434623053,"lat":48.26367900031684},{"id":"SUBSTATION_09","name":"","lon":10.725818319130767,"lat":48.33314766899523},{"id":"SUBSTATION_10","name":"Übernahmestelle Göggingen;Umspannwerk Göggingen","lon":10.879276353488937,"lat":48.32627245482668},{"id":"SUBSTATION_11","name":"","lon":10.603201739636857,"lat":48.348517774392064},{"id":"SUBSTATION_12","name":"Umspannwerk Leitershofen","lon":10.847185418706765,"lat":48.345102903220166},{"id":"SUBSTATION_13","name":"Umspannwerk Stadtbergen","lon":10.839949205120238,"lat":48.37735990321215},{"id":"SUBSTATION_14","name":"","lon":10.661231831206088,"lat":48.11055747113374},{"id":"SUBSTATION_15","name":"Umspannwerk Schwabmünchen","lon":10.733080761364189,"lat":48.19211013381741}],"reps":[{"id":"SYN_REPORT_01","short":"Broad strong gusts (weather desk)","t":12,"poly":[[10.45,48.09],[10.88,48.09],[10.88,48.38],[10.45,48.38],[10.45,48.09]],"lines":["LINE_001","LINE_002","LINE_003","LINE_004","LINE_005","LINE_006","LINE_007","LINE_008","LINE_009","LINE_012","LINE_013","LINE_014","LINE_015","LINE_016","LINE_017","LINE_018","LINE_019","LINE_020","LINE_021","LINE_022","LINE_023","LINE_024","LINE_025","LINE_026","LINE_027","LINE_028","LINE_029","LINE_030","LINE_031","LINE_032","LINE_033","LINE_034","LINE_035","LINE_036","LINE_037","LINE_038","LINE_039","LINE_040","LINE_041","LINE_042","LINE_043","LINE_044","LINE_045","LINE_046","LINE_047","LINE_048","LINE_049","LINE_050","LINE_051","LINE_052","LINE_053","LINE_054","LINE_055","LINE_056","LINE_057","LINE_058","LINE_059","LINE_060","LINE_061","LINE_062","LINE_063","LINE_064"]},{"id":"SYN_REPORT_02","short":"Branch across access track; tree near a route (area only)","t":31,"poly":[[10.56,48.18],[10.68,48.18],[10.68,48.24],[10.56,48.24],[10.56,48.18]],"lines":["LINE_025","LINE_026","LINE_058"]},{"id":"SYN_REPORT_03","short":"Protection event + reclose (area); LINE_024 known de-energized","t":44,"poly":[[10.6,48.15],[10.75,48.15],[10.75,48.23],[10.6,48.23],[10.6,48.15]],"lines":["LINE_015","LINE_026","LINE_030","LINE_051","LINE_052"]},{"id":"SYN_REPORT_04","short":"Orange flash near industrial site (low confidence)","t":63,"poly":[[10.85,48.13],[10.88,48.13],[10.88,48.18],[10.85,48.18],[10.85,48.13]],"lines":["LINE_034","LINE_059"]},{"id":"SYN_REPORT_05","short":"Ticking + thermal contrast (area only)","t":87,"poly":[[10.75,48.18],[10.84,48.18],[10.84,48.24],[10.75,48.24],[10.75,48.18]],"lines":["LINE_001","LINE_002","LINE_014","LINE_018","LINE_019","LINE_020","LINE_036","LINE_043"]},{"id":"SYN_REPORT_06","short":"Span moved more than neighbours (area only)","t":111,"poly":[[10.79,48.29],[10.87,48.29],[10.87,48.36],[10.79,48.36],[10.79,48.29]],"lines":["LINE_003","LINE_039","LINE_054"]}],"storm":[[10.47,48.12],[10.62,48.1],[10.84,48.12],[10.87,48.29],[10.8,48.36],[10.59,48.37],[10.47,48.29],[10.47,48.12]],"de":["LINE_024"]};
+const $=i=>document.getElementById(i),SP=36,DT=.5,END=240,N=Math.round(END/DT)+1,HUB='SUBSTATION_07';
+const P=(x,y)=>[(x-10.45)*666.5,(48.38-y)*1000];
+const SEG={};D.segs.forEach(s=>SEG[s.id]=s);
+const NC={},ADJ={};
+D.segs.forEach(s=>{NC[s.fi]=s.pts[0];NC[s.ti]=s.pts[s.pts.length-1];(ADJ[s.fi]=ADJ[s.fi]||[]).push([s.ti,s.id,s.km]);(ADJ[s.ti]=ADJ[s.ti]||[]).push([s.fi,s.id,s.km])});
+const KM=(a,b)=>Math.hypot((a[0]-b[0])*Math.cos(a[1]*Math.PI/180)*111,(a[1]-b[1])*111);
+const hh=t=>'T+'+String(Math.floor(t/60)).padStart(2,'0')+':'+String(Math.floor(t%60)).padStart(2,'0');
+const nz=(t,k)=>((Math.sin(t*12.9898+k*78.233)*43758.5453)%1+1)%1-.5;
+const pointAt=(pts,f)=>{const n=pts.length,x=Math.min(1,Math.max(0,f))*(n-1),i=Math.min(n-2,Math.floor(x)),w=x-i;return[pts[i][0]+(pts[i+1][0]-pts[i][0])*w,pts[i][1]+(pts[i+1][1]-pts[i][1])*w]};
+const orient=(sid,from)=>SEG[sid].fi===from?SEG[sid].pts:[...SEG[sid].pts].reverse();
+function dij(src){const d={[src]:0},pv={},done={};for(;;){let u=null,b=1e9;for(const k in d)if(!done[k]&&d[k]<b){b=d[k];u=k}if(u===null)break;done[u]=1;for(const[v,sid,km]of ADJ[u]||[]){const nd=b+km;if(d[v]===undefined||nd<d[v]){d[v]=nd;pv[v]=[u,sid]}}}return{d,pv}}
+function route(src,seg){const{d,pv}=dij(src),S=SEG[seg],end=[S.fi,S.ti].filter(n=>d[n]!==undefined).sort((a,b)=>d[a]-d[b])[0],edges=[];let c=end;while(c!==src){const[p,sid]=pv[c];edges.unshift({sid,from:p,km:SEG[sid].km});c=p}return{edges,end}}
+
+// Plan: sorties per unit. disp = not-before dispatch (min). pp = out-and-back hover-check. perch = recharge on energized line.
+const PLAN={D1:[{seg:'LINE_026',disp:20,hold:12,perch:1}],D2:[{seg:'LINE_024',disp:44,hold:6,perch:0,pp:1},{seg:'LINE_015',disp:0,hold:4,perch:1}],D3:[{seg:'LINE_036',disp:87,hold:10,perch:1}],D4:[{seg:'LINE_039',disp:111,hold:8,perch:1}],D5:[{seg:'LINE_026',disp:47,hold:10,perch:1}]};
+const COL={D1:'#5eead4',D2:'#c4b5fd',D3:'#fdba74',D4:'#f9a8d4',D5:'#93c5fd'};
+const FL=Object.keys(PLAN).map(id=>{
+  let t=0,node=HUB,pos=NC[HUB],ph=[],sS=0,prevPerch=true;
+  PLAN[id].forEach((so,k)=>{
+    const t0=Math.max(so.disp,t),r=route(node,so.seg),S=SEG[so.seg],pid=id+'-'+k;
+    if(prevPerch)sS=t0;
+    let tt=t0;
+    if(r.edges.length){const ed=r.edges.map(e=>{const o={...e,t0:tt,t1:tt+e.km/SP*60};tt=o.t1;return o});ph.push({k:'fly',pid,t0,t1:tt,ed,sS,tgt:so.seg})}
+    const op=S.fi===r.end?S.pts:[...S.pts].reverse(),M=so.pp?so.hold/120*SP:so.hold/60*SP,ts=tt;
+    const pt=t=>{const u=Math.min(1,Math.max(0,(t-ts)/so.hold)),v=so.pp?1-Math.abs(2*u-1):u;return pointAt(op,v*M/S.km)};
+    ph.push({k:'pat',pid,seg:so.seg,t0:tt,t1:tt+so.hold,pt,sS,pp:so.pp});
+    tt+=so.hold;const endP=pt(tt);
+    if(so.perch){ph.push({k:'chg',pid,seg:so.seg,t0:tt,t1:tt+180,pos:endP});tt+=180}
+    node=r.end;pos=so.perch?endP:NC[r.end];t=tt;prevPerch=!!so.perch;
+  });
+  ph.push({k:'rdy',t0:t,t1:1e9,pos,seg:PLAN[id].slice(-1)[0].seg});
+  return{id,ph,t0:0};
+});
+// Anomalies the drones can detect (hypothetical): a hotspot on LINE_026 midpoint; sway on LINE_039.
+const ANOM=[{seg:'LINE_026',kind:'T',amp:13,on:0,r:.6,c:pointAt(SEG.LINE_026.pts,.5)},{seg:'LINE_039',kind:'S',amp:2.2,on:100,r:0,c:null}];
+const SM={},DET=[],VIS={};
+function posOf(ph,t){if(ph.k==='fly'){const e=ph.ed.find(e=>t>=e.t0&&t<=e.t1)||ph.ed[ph.ed.length-1];return{p:pointAt(orient(e.sid,e.from),(t-e.t0)/(e.t1-e.t0)),seg:e.sid}}if(ph.k==='pat')return{p:ph.pt(t),seg:ph.seg};return{p:ph.pos,seg:ph.seg}}
+FL.forEach(f=>{
+  const arr=[];let prev=null;
+  for(let i=0;i<N;i++){
+    const t=i*DT,ph=f.ph.filter(p=>t>=p.t0&&t<p.t1).pop();
+    let m='SB',p=NC[HUB],seg=null,en=0,rd=null;
+    if(ph){const q=posOf(ph,t);p=q.p;seg=q.seg;
+      if(ph.k==='fly'){m='FLY';en=30-(t-ph.sS)}
+      else if(ph.k==='pat'){m=D.de.includes(ph.seg)?'HOV':'OBS';en=30-(t-ph.sS)}
+      else if(ph.k==='chg'){m='CHG';en=ph.t1-t}
+      else{m='RDY';en=0}}
+    const hd=prev&&KM(prev.p,p)>1e-4?Math.atan2((p[0]-prev.p[0])*Math.cos(p[1]*Math.PI/180),p[1]-prev.p[1])*180/Math.PI:(prev?prev.hd:0);
+    const gs=prev&&(m==='FLY'||m==='OBS'||m==='HOV')?KM(prev.p,p)/(DT/60):0;
+    if(m==='OBS'||m==='HOV'||m==='CHG'){
+      VIS[seg]=VIS[seg]??t;
+      const a=ANOM.find(a=>a.seg===seg&&t>=a.on);
+      const dA=a&&a.c?KM(p,a.c):0;
+      const temp=46+nz(t,i%7)*.6+(a&&a.kind==='T'?a.amp*Math.exp(-Math.pow(dA/a.r,2)):0);
+      const sway=.4+nz(t,i%5)*.08+(a&&a.kind==='S'&&seg===a.seg?a.amp:0);
+      rd={A:D.de.includes(seg)?0:180+nz(t,i%3)*4,T:temp,S:sway,R:-82+nz(t,i%11)*4,cam:(seg==='LINE_026'&&dA<1.5&&temp>52)?'Canopy blocks view':'No contact seen'};
+      if((a&&a.kind==='T'&&temp>52)||(a&&a.kind==='S'&&sway>1.2))if(!DET.some(x=>x.pid===ph.pid&&x.seg===seg))DET.push({t,seg,pid:ph.pid});
+    }
+    arr.push({t,m,seg,p,hd,gs,en,rd});prev=arr[i];
+  }
+  SM[f.id]=arr;
+});
+const EV=[];
+FL.forEach(f=>f.ph.forEach(p=>{
+  if(p.k==='fly')EV.push([p.t0,`${f.id} departs hub for ${p.tgt}`,'fly']);
+  if(p.k==='pat')EV.push([p.t0,D.de.includes(p.seg)?`${f.id} hover-checks de-energized ${p.seg} (no perch)`:`${f.id} on station, ${p.seg}`,'fly']);
+  if(p.k==='chg')EV.push([p.t0,`${f.id} perches on energized ${p.seg}, 3 h recharge`,'chg']);
+  if(p.k==='rdy'&&p.t0<=END)EV.push([p.t0,`${f.id} recharged, back in service`,'realloc']);
+}));
+DET.forEach(x=>EV.push([x.t,`${x.pid.slice(0,2)} detects anomaly on ${x.seg} (single pass)`,'alert']));
+Object.keys(SEG).forEach(s=>{const d=DET.filter(x=>x.seg===s).sort((a,b)=>a.t-b.t),ids=new Set();d.forEach(x=>{ids.add(x.pid.slice(0,2));if(ids.size===2)EV.push([x.t,`ALERT ${s}: repeat signal on 2 passes. Recommend inspection; cause unconfirmed`,'alert'])})});
+D.reps.forEach(r=>EV.push([r.t,`R${r.id.slice(-2)} ${r.short}`,'rep']));
+EV.sort((a,b)=>a[0]-b[0]);
+function lstat(id,t){if(D.de.includes(id))return'd';const n=new Set(DET.filter(x=>x.seg===id&&x.t<=t).map(x=>x.pid.slice(0,2))).size;if(n>=2)return'a';if(n===1)return'w';return VIS[id]!=null&&VIS[id]<=t?'o':null}
+const MSG={a:['INSPECT RECOMMENDED','Repeat signal on two separate passes at the same span. Recommend a ground inspection. This is not a repair order: the cause is unconfirmed, and the overlap with R02 and R03 is location context only.'],
+w:['WATCH · REPEAT NEEDED','Anomaly on one pass. One pass is not enough to conclude anything.'],
+o:['NO SIGNAL · NOT CLEARED','Baseline readings on the pass(es) flown. A single pass does not clear the whole line.'],
+d:['DE-ENERGIZED · KNOWN','Status check says de-energized: no perch, no charge. Its link to the R03 protection event is unknown.'],
+n:['NO DRONE DATA YET','Not flown. Reports only place this line inside an area.']};
+const MODE={SB:'STANDBY',FLY:'IN TRANSIT',OBS:'ON STATION · SENSING',HOV:'HOVER-CHECK · DE-ENERGIZED',CHG:'CHARGING · ENERGIZED PERCH',RDY:'READY'};
+const MCOL={a:'#fb7185',w:'#fbbf24',o:'#4ade80',d:'#94a3b8'};
+
+let T=0,playing=false,lastTs=0,SPD=6,SEL='D1',SELL='LINE_026',HL=null;
+const idx=()=>Math.min(N-1,Math.round(T/DT));
+const cur=id=>SM[id][idx()];
+function ptsHtml(id,i){const s=SM[id][i];return s}
+function card(f){
+  const s=cur(f.id),bar=s.m==='CHG'?1-s.en/180:s.m==='SB'?1:Math.max(0,s.en/30);
+  const sub=s.m==='CHG'?'ready '+hh(f.ph.find(p=>p.k==='chg'&&p.t0<=T&&p.t1>T).t1):s.m==='FLY'||s.m==='OBS'||s.m==='HOV'?'endurance '+Math.max(0,Math.round(s.en))+' min · '+Math.round(s.gs)+' km/h':'';
+  return `<div class="dc${SEL===f.id?' sel':''}" onclick="SEL='${f.id}';SELL=cur('${f.id}').seg||SELL;render()"><div class="row"><span><i style="display:inline-block;width:8px;height:8px;border-radius:50%;background:${COL[f.id]};margin-right:5px"></i><b class="mono">${f.id}</b> <span class="muted">${s.seg||'hub'}</span></span><span class="pill" style="color:${s.m==='CHG'?'#fbbf24':s.m==='RDY'||s.m==='SB'?'#4ade80':'#67e8f9'}">${MODE[s.m].split(' · ')[0]}</span></div><div class="bar"><i style="width:${Math.max(0,Math.min(1,bar))*100}%;background:${COL[f.id]}"></i></div><div class="muted" style="font-size:11px">${sub}</div></div>`;
+}
+function tele(id){
+  const i=idx(),s=SM[id][i],r=s.rd,jit=(x,a)=>(x+(Math.random()-.5)*a).toFixed(a<.1?2:1);
+  const onLine=['OBS','HOV','CHG'].includes(s.m);
+  const alt=onLine?'on conductor':(s.m==='FLY'?'38 m AGL':'—');
+  let spark='';
+  if(r){const pts=[];for(let k=Math.max(0,i-120);k<=i;k++){const q=SM[id][k].rd;if(q)pts.push([k,q.T])}
+    if(pts.length>1){const x=k=>(k-(i-120))/120*300,y=t=>60-(Math.min(70,Math.max(40,t))-40)/30*56;spark=`<svg viewBox="0 0 300 62" width="100%" height="62" style="margin-top:6px"><polyline class="tele-sp" points="${pts.map(([k,t])=>x(k).toFixed(1)+','+y(t).toFixed(1)).join(' ')}"/><text x="2" y="10" class="ax">conductor °C · last 60 min</text></svg>`}}
+  const bar=s.m==='CHG'?1-s.en/180:Math.max(0,s.en/30),lbl=s.m==='CHG'?'Recharge · '+Math.round(s.en)+' min left':'Endurance · '+Math.max(0,Math.round(s.en))+' min';
+  return `<div class="row"><div><div class="mono" style="font-size:18px;font-weight:700;color:${COL[id]}">${id}</div><div class="muted mono" style="font-size:11px">${s.seg||'hub SUBSTATION_07'}</div></div><span class="badge2">${MODE[s.m]}</span></div>
+  <div class="kv"><div><small>Latitude</small><b>${s.p[1].toFixed(5)}°</b></div><div><small>Longitude</small><b>${s.p[0].toFixed(5)}°</b></div>
+  <div><small>Ground speed</small><b>${Math.max(0,+jit(s.gs,.8)).toFixed(1)} km/h</b></div><div><small>Heading</small><b>${jit(((s.hd%360)+360)%360,2)}°</b></div>
+  <div><small>Altitude</small><b>${alt}</b></div><div><small>Uplink</small><b>${r?jit(r.R,1)+' dBm':'—'}</b></div></div>
+  <div class="bar" style="margin-top:8px"><i style="width:${bar*100}%;background:${COL[id]}"></i></div><div class="muted" style="font-size:11px">${lbl}</div>
+  <div class="kv" style="margin-top:8px"><div><small>Line current</small><b>${r?jit(r.A,.1).replace(/\.\d$/,'')+' A':'—'}</b></div><div><small>Conductor</small><b>${r&&r.T!=null?jit(r.T,.2)+' °C':'—'}</b></div>
+  <div><small>Sway</small><b>${r?jit(r.S,.02)+' mm':'—'}</b></div><div><small>Camera</small><b style="font-size:11px">${r?r.cam:'—'}</b></div></div>${spark}`;
+}
+function render(){
+  const i=idx();
+  $('clk').textContent=hh(T);$('tt').value=T;
+  const ready=FL.filter(f=>['SB','RDY'].includes(SM[f.id][i].m)).length;
+  const nxt=FL.flatMap(f=>f.ph.filter(p=>p.k==='chg'&&p.t1>T).map(p=>[p.t1,f.id])).sort((a,b)=>a[0]-b[0])[0];
+  $('avail').innerHTML=`<b>${ready}</b> of 5 available now${nxt?' · next free: '+nxt[1]+' at '+hh(nxt[0]):''}`;
+  $('fleet').innerHTML=FL.map(card).join('');
+  document.querySelectorAll('.sg').forEach(el=>{const id=el.dataset.id,s=lstat(id,T)||'',sel=id===SELL?' sel':'';el.setAttribute('class','sg'+(SEG[id].kv>300?' h':'')+(s&&s!=='o'?' '+s:(s==='o'?' o':''))+sel)});
+  document.querySelectorAll('path.rep').forEach(el=>el.setAttribute('class','rep'+(el.dataset.rep===HL?' on':'')));
+  $('halo').setAttribute('d','');
+  $('pg').innerHTML=Object.keys(SEG).filter(id=>lstat(id,T)==='a').map(id=>{const a=ANOM.find(a=>a.seg===id);if(!a||!a.c)return'';const[x,y]=P(...a.c);return `<circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="4" class="ring"/>`}).join('');
+  $('dg').innerHTML=FL.map(f=>{const s=SM[f.id][i],[x,y]=P(...s.p),c=COL[f.id];
+    const tr=SM[f.id].slice(Math.max(0,i-12),i+1).map(q=>P(...q.p).map(v=>v.toFixed(1)).join(',')).join(' ');
+    const moving=s.m==='FLY'||s.m==='OBS'||s.m==='HOV';
+    return `<polyline points="${tr}" fill="none" stroke="${c}" stroke-width=".5" opacity=".5"/><g transform="translate(${x.toFixed(1)} ${y.toFixed(1)}) rotate(${(s.hd||0).toFixed(0)})"><g class="${moving?'rot':''}" style="${moving?'':'animation:none'}"><circle r="1.7" cx="-2" cy="-2" fill="none" stroke="${c}" stroke-width=".4"/><circle r="1.7" cx="2" cy="-2" fill="none" stroke="${c}" stroke-width=".4"/><circle r="1.7" cx="-2" cy="2" fill="none" stroke="${c}" stroke-width=".4"/><circle r="1.7" cx="2" cy="2" fill="none" stroke="${c}" stroke-width=".4"/></g><path d="M0 -2.2 L1.6 0 L0 2.2 L-1.6 0Z" fill="${c}" stroke="#04080f" stroke-width=".4"/></g><text x="${(x+3.4).toFixed(1)}" y="${(y-2.6).toFixed(1)}" class="lbl" fill="${c}">${f.id}</text>`}).join('');
+  const s=SEG[SELL],ls=lstat(SELL,T)||'n';
+  $('side').innerHTML=`<h2>Drone telemetry · ${SEL}</h2><div class="pn" style="padding:8px;background:#0a1322">${tele(SEL)}</div>
+  <h2 style="margin-top:12px">Line · ${SELL}</h2>
+  <div class="mono" style="font-size:12px">${s.kv} kV · ${s.km} km · component ${s.c}</div>
+  <div class="muted" style="font-size:11.5px">${s.f} → ${s.t}</div>
+  <div class="badge" style="background:${MCOL[ls]||'#334155'}22;color:${MCOL[ls]||'#cbd5e1'}">${MSG[ls][0]}</div>
+  <div style="font-size:11.5px">${MSG[ls][1]}</div>
+  ${ls==='a'?`<div class="alert"><div class="hyp">HYPOTHETICAL defect alert · simulated sensing</div><b>Conductor hotspot, span midpoint</b><div class="muted" style="font-size:11.5px">Detected on two passes, about 12–13 K above baseline. Sway normal. Camera blocked by canopy. Nothing yet confirms a tree, a damaged connection, or a clearance issue.</div></div>`:''}`;
+  gantt(T);log(T);
+  $('coord').dataset.k=1;
+  reps(T);
+}
+function reps(t){$('reps').innerHTML=D.reps.map(r=>`<button class="rp${HL===r.id?' on':''}" style="opacity:${r.t<=t?1:.45}" onclick="HL=HL==='${r.id}'?null:'${r.id}';render()"><b class="mono">R${r.id.slice(-2)}</b> <span class="muted mono">${hh(r.t)}</span><br><span style="font-size:11px">${r.short}</span></button>`).join('')}
+function gantt(t){
+  const X=x=>90+x/240*690;let g='';
+  for(let k=0;k<=240;k+=60)g+=`<line x1="${X(k)}" x2="${X(k)}" y1="16" y2="186" class="gl"/><text x="${X(k)}" y="11" text-anchor="middle" class="ax">T+${k/60}h</text>`;
+  D.reps.forEach(r=>g+=`<text x="${X(r.t)}" y="24" text-anchor="middle" class="rt">R${r.id.slice(-2)}</text>`);
+  FL.forEach((f,i)=>{const y=34+i*30;g+=`<text x="4" y="${y+11}" class="dl" fill="${COL[f.id]}">${f.id}</text>`;
+    f.ph.forEach(p=>{if(p.k==='rdy')return;const x1=X(p.t0),w=X(Math.min(p.t1,240))-x1;if(w<=0)return;
+      g+=`<rect x="${x1.toFixed(1)}" y="${y}" width="${w.toFixed(1)}" height="15" rx="3" ${p.k==='chg'?'class="ch"':`style="fill:${COL[f.id]};opacity:${p.k==='fly'?.45:.95}"`}><title>${f.id} ${p.k} ${p.seg||''} ${hh(p.t0)}–${hh(p.t1)}</title></rect>`})});
+  g+=`<line x1="${X(t)}" x2="${X(t)}" y1="16" y2="186" class="cur"/>`;
+  $('gantt').innerHTML=g;
+}
+function log(t){$('log').innerHTML=EV.map(([et,txt,k])=>`<li style="opacity:${et<=t?1:.4}"><b style="border-color:${({alert:'#fb7185',rep:'#fbbf24',realloc:'#5eead4',chg:'#fbbf24',fly:'#7d90ab'})[k]||'#7d90ab'}">${hh(et)}</b>${txt}</li>`).join('')}
+
+// Static map layers
+const M=$('map');
+let h=`<defs><filter id="glow" x="-50%" y="-50%" width="200%" height="200%"><feGaussianBlur stdDeviation="1" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter><pattern id="hatch" width="4" height="4" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><rect width="4" height="4" fill="rgba(251,191,36,.05)"/><line x1="0" y1="0" x2="0" y2="4" stroke="rgba(251,191,36,.25)" stroke-width="1"/></pattern></defs>`;
+for(let x=10.45;x<=10.88;x+=.05){const[X]=P(x,48);h+=`<line x1="${X.toFixed(1)}" x2="${X.toFixed(1)}" y1="0" y2="290" class="gr"/>`}
+for(let y=48.1;y<=48.38;y+=.05){const[,Y]=P(10.45,y);h+=`<line x1="0" x2="286" y1="${Y.toFixed(1)}" y2="${Y.toFixed(1)}" class="gr"/>`}
+h+=`<path d="${'M'+D.storm.map(p=>P(...p).map(v=>v.toFixed(1)).join(',')).join('L')+'Z'}" class="storm"/>`;
+D.reps.forEach(r=>h+=`<path d="${'M'+r.poly.map(p=>P(...p).map(v=>v.toFixed(1)).join(',')).join('L')+'Z'}" class="rep" data-rep="${r.id}"><title>R${r.id.slice(-2)}</title></path>`);
+D.segs.forEach(s=>h+=`<path d="${'M'+s.pts.map(p=>P(...p).map(v=>v.toFixed(1)).join(',')).join('L')}" class="sg${s.kv>300?' h':''}" data-id="${s.id}"><title>${s.id} · ${s.kv} kV · ${s.km} km</title></path>`);
+h+=`<g id="halo"></g>`;
+D.subs.forEach(n=>{const[x,y]=P(n.lon,n.lat);h+=`<rect x="${(x-1.3).toFixed(1)}" y="${(y-1.3).toFixed(1)}" width="2.6" height="2.6" class="sub"><title>${n.name||n.id}</title></rect>${n.name?`<text x="${(x+2).toFixed(1)}" y="${(y+1).toFixed(1)}" class="sublbl">${n.name.replace(/^(UW|Umspannwerk) /,'').slice(0,18)}</text>`:''}`});
+const sc=P(10.45,48.1);
+h+=`<g transform="translate(14 262)"><line x1="0" x2="45" y1="0" y2="0" stroke="#dbe7f5" stroke-width=".8"/><line x1="0" x2="0" y1="-2" y2="2" stroke="#dbe7f5" stroke-width=".6"/><line x1="45" x2="45" y1="-2" y2="2" stroke="#dbe7f5" stroke-width=".6"/><text x="0" y="-3" class="ax" style="fill:#dbe7f5">5 km</text></g>`;
+h+=`<g transform="translate(270 14)"><path d="M0 -8 L3 3 L0 1 L-3 3Z" fill="#dbe7f5"/><text x="-2" y="10" class="ax" style="fill:#dbe7f5">N</text></g>`;
+h+=`<g id="pg"></g><g id="dg"></g>`;
+M.innerHTML=h;
+M.addEventListener('click',e=>{const id=e.target.dataset&&e.target.dataset.id;if(id){SELL=id;render()}});
+M.addEventListener('mousemove',e=>{const r=M.getBoundingClientRect(),x=-6+(e.clientX-r.left)/r.width*300,y=-6+(e.clientY-r.top)/r.height*302;$('coord').textContent=`${(10.45+x/666.5).toFixed(4)}°E  ${(48.38-y/1000).toFixed(4)}°N`});
+$('play').onclick=()=>{if(T>=END)T=0;playing=!playing;$('play').textContent=playing?'❚❚ Pause':'▶ Play';lastTs=0;if(playing)requestAnimationFrame(tick)};
+function tick(ts){if(!playing)return;const dt=lastTs?(ts-lastTs)/1000:0;lastTs=ts;T=Math.min(END,T+dt*SPD);render();if(T>=END){playing=false;$('play').textContent='▶ Replay';return}requestAnimationFrame(tick)}
+$('tt').oninput=e=>{T=+e.target.value;render()};
+$('spd').onchange=e=>{SPD=+e.target.value};
+setInterval(()=>{if(!playing)render()},1000);
+render();
+/* ---------- 3D control room (three.js r128) ---------- */
+const VE=6,LON0=10.45,LAT0=48.09;
+const W3=(lo,la)=>new THREE.Vector3((lo-LON0)*741-160,0,-(la-LAT0)*1110+160);
+const H0m=kv=>(kv>300?40:22)/100*VE;
+const sagOf=s=>Math.min(1.2,s.km*.05);
+const CAM={th:.7,ph:1.05,r:340,tg:new THREE.Vector3(),follow:false};
+const G3={lines:{},drones:{},labels:{},trails:{},rep:{}};
+let RAY,MV,REN,SC,CM;
+function lineY(seg,lo,la){const s=SEG[seg],p=s.pts;let bi=0,bd=1e9;p.forEach((q,i)=>{const d=(q[0]-lo)**2+(q[1]-la)**2;if(d<bd){bd=d;bi=i}});const u=bi/(p.length-1);return H0m(s.kv)-sagOf(s)*4*u*(1-u)}
+function init3(){
+  const box=$('g3'),st=document.createElement('style');
+  st.textContent='.tag3{position:absolute;left:0;top:0;font:700 10.5px ui-monospace,Menlo,monospace;pointer-events:none;background:rgba(4,8,15,.75);border:1px solid #1b2a40;border-radius:4px;padding:1px 5px;white-space:nowrap;display:none}.tag3.sel{border-color:#67e8f9}.cam3{position:absolute;left:8px;top:8px;display:flex;gap:6px;z-index:2}.cam3 button{font-size:11px;padding:3px 8px}.hint3{position:absolute;right:8px;bottom:6px;font-size:10.5px;color:#7d90ab;pointer-events:none}';
+  document.head.appendChild(st);
+  const w=box.clientWidth||900,h=box.clientHeight||520;
+  REN=new THREE.WebGLRenderer({antialias:true});REN.setPixelRatio(Math.min(window.devicePixelRatio||1,2));REN.setSize(w,h);box.appendChild(REN.domElement);
+  SC=new THREE.Scene();SC.background=new THREE.Color(0x050a12);SC.fog=new THREE.Fog(0x050a12,380,760);
+  CM=new THREE.PerspectiveCamera(40,w/h,.5,2000);
+  SC.add(new THREE.AmbientLight(0x8fb0d4,.75));const sun=new THREE.DirectionalLight(0xffffff,.7);sun.position.set(80,200,60);SC.add(sun);
+  const gnd=new THREE.Mesh(new THREE.PlaneGeometry(340,340),new THREE.MeshBasicMaterial({color:0x08111e}));gnd.rotation.x=-Math.PI/2;gnd.position.y=-.05;SC.add(gnd);
+  const gp=[];for(let lo=10.45;lo<=10.881;lo+=.05)gp.push(W3(lo,48.09),W3(lo,48.38));for(let la=48.1;la<=48.381;la+=.05)gp.push(W3(10.45,la),W3(10.88,la));
+  SC.add(new THREE.LineSegments(new THREE.BufferGeometry().setFromPoints(gp),new THREE.LineBasicMaterial({color:0x172640})));
+  const sh=new THREE.Shape();D.storm.forEach((p,i)=>{const v=W3(p[0],p[1]);i?sh.lineTo(v.x,-v.z):sh.moveTo(v.x,-v.z)});
+  const sm=new THREE.Mesh(new THREE.ShapeGeometry(sh),new THREE.MeshBasicMaterial({color:0xfbbf24,transparent:true,opacity:.08,side:THREE.DoubleSide}));sm.rotation.x=-Math.PI/2;sm.position.y=.02;SC.add(sm);
+  D.reps.forEach(r=>{const v=r.poly.map(p=>{const q=W3(p[0],p[1]);return new THREE.Vector3(q.x,.25,q.z)});const l=new THREE.Line(new THREE.BufferGeometry().setFromPoints(v),new THREE.LineBasicMaterial({color:0xfbbf24,transparent:true,opacity:.3}));SC.add(l);G3.rep[r.id]=l});
+  D.segs.forEach(s=>{const n=s.pts.length,y0=H0m(s.kv),sg=sagOf(s),hi=s.kv>300;
+    const v=s.pts.map((p,i)=>{const q=W3(p[0],p[1]),u=i/(n-1);return new THREE.Vector3(q.x,y0-sg*4*u*(1-u),q.z)});
+    const m=new THREE.Mesh(new THREE.TubeGeometry(new THREE.CatmullRomCurve3(v),Math.max(10,n*6),hi?.2:.11,5,false),new THREE.MeshBasicMaterial({color:hi?0x22d3ee:0x41546f}));
+    m.userData.id=s.id;SC.add(m);G3.lines[s.id]=m});
+  D.subs.forEach(n=>{const q=W3(n.lon,n.lat),b=new THREE.Mesh(new THREE.BoxGeometry(2.4,1,2.4),new THREE.MeshLambertMaterial({color:0x3b4a60}));b.position.set(q.x,.5,q.z);SC.add(b)});
+  FL.forEach(f=>{const c=new THREE.Color(COL[f.id]),g=new THREE.Group();
+    g.add(new THREE.Mesh(new THREE.BoxGeometry(1.1,.35,1.1),new THREE.MeshLambertMaterial({color:c,emissive:c,emissiveIntensity:.35})));
+    const rot=[];[[-.8,-.8],[.8,-.8],[-.8,.8],[.8,.8]].forEach(([x,z])=>{const r=new THREE.Mesh(new THREE.CylinderGeometry(.55,.55,.04,14),new THREE.MeshBasicMaterial({color:c,transparent:true,opacity:.35}));r.position.set(x,.3,z);g.add(r);rot.push(r)});
+    g.userData.rotors=rot;SC.add(g);G3.drones[f.id]=g;
+    const sh2=new THREE.Mesh(new THREE.CircleGeometry(.9,16),new THREE.MeshBasicMaterial({color:0,transparent:true,opacity:.35}));sh2.rotation.x=-Math.PI/2;SC.add(sh2);g.userData.sh=sh2;
+    const tr=new THREE.Line(new THREE.BufferGeometry(),new THREE.LineBasicMaterial({color:c,transparent:true,opacity:.6}));SC.add(tr);G3.trails[f.id]=tr;
+    const lab=document.createElement('div');lab.className='tag3';lab.textContent=f.id;lab.style.color=COL[f.id];box.appendChild(lab);G3.labels[f.id]=lab});
+  G3.ring=new THREE.Mesh(new THREE.RingGeometry(2.6,3.4,40),new THREE.MeshBasicMaterial({color:0xfb7185,transparent:true,opacity:.85,side:THREE.DoubleSide}));G3.ring.rotation.x=-Math.PI/2;G3.ring.visible=false;SC.add(G3.ring);
+  RAY=new THREE.Raycaster();MV=new THREE.Vector2();
+  const cv=REN.domElement;let dr=null,mv=0;
+  cv.addEventListener('pointerdown',e=>{dr={x:e.clientX,y:e.clientY};mv=0});
+  window.addEventListener('pointermove',e=>{if(!dr)return;const dx=e.clientX-dr.x,dy=e.clientY-dr.y;mv+=Math.abs(dx)+Math.abs(dy);CAM.th-=dx*.006;CAM.ph=Math.min(1.5,Math.max(.2,CAM.ph-dy*.005));dr={x:e.clientX,y:e.clientY};if(mv>6)CAM.follow=false});
+  window.addEventListener('pointerup',e=>{if(dr&&mv<6&&e.target===cv)pick(e);dr=null});
+  cv.addEventListener('wheel',e=>{e.preventDefault();CAM.r=Math.min(600,Math.max(35,CAM.r*(1+e.deltaY*.0015)))},{passive:false});
+  const hud=document.createElement('div');hud.className='cam3';hud.innerHTML='<button id="ovw">Overview</button><button id="fol">Follow '+SEL+'</button>';box.appendChild(hud);
+  hud.querySelector('#ovw').onclick=()=>{CAM.follow=false;CAM.r=340;CAM.th=.7;CAM.ph=1.05};
+  hud.querySelector('#fol').onclick=()=>{CAM.follow=!CAM.follow;CAM.r=110};
+  const hint=document.createElement('div');hint.className='hint3';hint.textContent='drag to orbit · wheel to zoom · click a line · drones enlarged ×10';box.appendChild(hint);
+  $('coord').style.display='none';
+  window.addEventListener('resize',()=>{const W2=box.clientWidth,H2=box.clientHeight||520;REN.setSize(W2,H2);CM.aspect=W2/H2;CM.updateProjectionMatrix()});
+}
+function pick(e){const r=REN.domElement.getBoundingClientRect();MV.x=(e.clientX-r.left)/r.width*2-1;MV.y=-(e.clientY-r.top)/r.height*2+1;RAY.setFromCamera(MV,CM);const h=RAY.intersectObjects(Object.values(G3.lines))[0];if(h){SELL=h.object.userData.id;render()}}
+function draw3(){
+  if(!SC)return;
+  const W=REN.domElement.clientWidth,H=REN.domElement.clientHeight,f=T/DT,i0=Math.min(N-2,Math.floor(f)),a=f-i0;
+  Object.keys(G3.lines).forEach(id=>{const s=lstat(id,T),c=id===SELL?0xffffff:s==='a'?0xfb7185:s==='w'?0xfbbf24:s==='o'?0x4ade80:s==='d'?0x64748b:(SEG[id].kv>300?0x22d3ee:0x41546f);G3.lines[id].material.color.setHex(c)});
+  Object.keys(G3.rep).forEach(id=>G3.rep[id].material.opacity=HL===id?.9:.3);
+  const al=Object.keys(SEG).filter(id=>lstat(id,T)==='a'&&ANOM.find(x=>x.seg===id&&x.c));
+  G3.ring.visible=al.length>0;
+  if(al.length){const an=ANOM.find(x=>x.seg===al[0]),q=W3(an.c[0],an.c[1]),k=1+.25*Math.sin(performance.now()/300);G3.ring.position.set(q.x,H0m(SEG[al[0]].kv)+.15,q.z);G3.ring.scale.set(k,k,k)}
+  let fol=null;
+  FL.forEach(fl=>{const A=SM[fl.id][i0],B=SM[fl.id][i0+1];
+    const lo=A.p[0]+(B.p[0]-A.p[0])*a,la=A.p[1]+(B.p[1]-A.p[1])*a,seg=A.seg||B.seg,onL=['OBS','HOV','CHG'].includes(A.m);
+    const tY=A.m==='FLY'?H0m(SEG[seg||'LINE_026'].kv)+4:(onL||(A.m==='RDY'&&A.seg))?lineY(seg,lo,la)+.9:1.6;
+    const g=G3.drones[fl.id],q=W3(lo,la);
+    g.position.x=q.x;g.position.z=q.z;g.position.y+=(tY-g.position.y)*.25;
+    g.rotation.y=Math.PI/2-(A.hd||0)*Math.PI/180;
+    const spin=(A.m==='FLY'||A.m==='OBS'||A.m==='HOV')?.9:.05;g.userData.rotors.forEach(r=>r.rotation.y+=spin);
+    g.userData.sh.position.set(q.x,.04,q.z);
+    const pts=[];for(let k=Math.max(0,i0-16);k<=i0;k++){const s=SM[fl.id][k],ww=W3(s.p[0],s.p[1]);pts.push(new THREE.Vector3(ww.x,s.m==='FLY'?H0m(SEG[s.seg||'LINE_026'].kv)+4:1.4,ww.z))}
+    G3.trails[fl.id].geometry.dispose();G3.trails[fl.id].geometry=new THREE.BufferGeometry().setFromPoints(pts);
+    const lab=G3.labels[fl.id],v=new THREE.Vector3(g.position.x,g.position.y+2.4,g.position.z).project(CM);
+    lab.style.display=v.z>1?'none':'block';lab.style.transform=`translate(${((v.x+1)/2*W).toFixed(0)}px,${((1-v.y)/2*H).toFixed(0)}px)`;
+    lab.className='tag3'+(SEL===fl.id?' sel':'');if(SEL===fl.id)fol=g;
+  });
+  CAM.tg.lerp(fol&&CAM.follow?fol.position:new THREE.Vector3(0,0,0),CAM.follow?.12:.08);
+  const R=CAM.r;CM.position.set(CAM.tg.x+R*Math.sin(CAM.ph)*Math.cos(CAM.th),CAM.tg.y+R*Math.cos(CAM.ph),CAM.tg.z+R*Math.sin(CAM.ph)*Math.sin(CAM.th));
+  CM.lookAt(CAM.tg);REN.render(SC,CM);
+  const fb=document.getElementById('fol');if(fb)fb.textContent=(CAM.follow?'Following ':'Follow ')+SEL;
+}
+function loop(){draw3();requestAnimationFrame(loop)}
+init3();loop();
+
+</script>
+</body></html>

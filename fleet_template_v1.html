@@ -1,0 +1,241 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Grid storm · fleet dashboard (synthetic concept)</title>
+<style>
+:root{--bg:#0a1019;--pn:#111b2b;--ln:#22314a;--tx:#e6edf7;--mu:#8ea0bb;--ac:#5eead4;--am:#f59e0b;--rd:#f43f5e}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--tx);font:13px/1.45 system-ui,-apple-system,Segoe UI,Roboto,sans-serif;padding:env(safe-area-inset-top,0px) 0 env(safe-area-inset-bottom,0px)}
+header{display:flex;gap:12px;align-items:center;padding:10px 16px;border-bottom:1px solid var(--ln);flex-wrap:wrap}
+h1{font-size:15px;margin:0;font-weight:600}
+.tag{font-size:11px;color:var(--am);border:1px solid var(--am);border-radius:999px;padding:1px 8px;white-space:nowrap}
+.clock{font:600 22px ui-monospace,Menlo,monospace;margin-left:auto}
+button,select{background:var(--pn);color:var(--tx);border:1px solid var(--ln);border-radius:8px;padding:6px 10px;font:inherit;cursor:pointer}
+input[type=range]{flex:1;min-width:200px;accent-color:var(--ac)}
+main{display:grid;grid-template-columns:280px minmax(0,1fr) 330px;gap:12px;padding:12px}
+.pn{background:var(--pn);border:1px solid var(--ln);border-radius:14px;padding:12px;min-width:0}
+h2{font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--mu);margin:0 0 8px;font-weight:600}
+.muted{color:var(--mu)}
+.drone{border:1px solid var(--ln);border-radius:10px;padding:8px;margin-bottom:8px;cursor:pointer}
+.drone:hover{border-color:var(--mu)}
+.row{display:flex;justify-content:space-between;align-items:center;gap:8px}
+.dot{width:9px;height:9px;border-radius:50%;display:inline-block;margin-right:6px}
+.pill{font-size:10px;font-weight:700;padding:2px 7px;border-radius:999px;background:#1e293b;white-space:nowrap}
+.bar{height:6px;background:#1e293b;border-radius:4px;overflow:hidden;margin:6px 0 2px}
+.bar i{display:block;height:100%;background:var(--ac)}
+.rep{display:block;width:100%;text-align:left;margin-bottom:6px;padding:6px 8px;font-size:12px}
+.rep.on{border-color:var(--am)}
+svg#map{width:100%;height:auto;display:block;background:radial-gradient(circle at 50% 40%,#0f1b2e,#070c14);border-radius:12px;border:1px solid var(--ln)}
+.storm{fill:rgba(245,158,11,.07);stroke:var(--am);stroke-dasharray:3 2;stroke-width:.5}
+path.rep{fill:none;stroke:#7c5a14;stroke-width:.5;stroke-dasharray:1.5 1.5;pointer-events:stroke}
+path.rep.on{stroke:var(--am);stroke-width:1.1}
+.seg{fill:none;stroke:#3b4a63;stroke-width:1.1;cursor:pointer}
+.seg.hv{stroke:#64748b;stroke-width:2.2}
+.seg.w{stroke:var(--am);stroke-width:2}
+.seg.a{stroke:var(--rd);stroke-width:2.6}
+.seg.o{stroke:var(--ac);stroke-width:1.6}
+.seg.d{stroke:#94a3b8;stroke-dasharray:2 1.5;stroke-width:2}
+.halo{fill:none;stroke:#fff;stroke-width:3.4;opacity:.85;pointer-events:none}
+.sub{fill:#cbd5e1}
+.pulse{fill:none;stroke:var(--rd);stroke-width:.8;animation:p 1.4s infinite}
+@keyframes p{50%{opacity:.15}}
+.insp-h{font:600 16px ui-monospace,Menlo,monospace}
+.badge{display:inline-block;font-weight:700;font-size:11px;padding:3px 8px;border-radius:6px;margin:6px 0}
+.hyp{font-size:10px;color:var(--am);text-transform:uppercase;letter-spacing:.06em}
+table{width:100%;border-collapse:collapse;font-size:12px;margin-top:4px}
+td{padding:4px 2px;border-bottom:1px solid var(--ln)}
+td:last-child{text-align:right;font-family:ui-monospace,Menlo,monospace}
+.alert{border:1px solid var(--rd);background:rgba(244,63,94,.08);border-radius:10px;padding:10px;margin:8px 0}
+.rules{border:1px solid var(--ln);border-radius:10px;padding:10px;margin-top:10px;font-size:12px}
+.bottom{display:grid;grid-template-columns:minmax(0,1.5fr) minmax(0,1fr);gap:12px;padding:0 12px 12px}
+#gantt{width:100%;height:auto;display:block}
+.ax{fill:var(--mu);font-size:9px}.gl{stroke:#1a2638;stroke-width:.6}.rt{fill:var(--am);font-size:9px}
+.dl{font-size:11px;font-weight:700}.ch{fill:#1e293b;stroke:#475569;stroke-dasharray:3 2}.cur{stroke:#fff;stroke-dasharray:2 2}
+ul.log{list-style:none;margin:0;padding:0;max-height:210px;overflow:auto}
+ul.log li{padding:4px 0;border-bottom:1px solid var(--ln);font-size:12px}
+ul.log b{font-family:ui-monospace,Menlo,monospace;margin-right:6px;padding-left:6px;border-left:3px solid var(--mu)}
+details{font-size:12px;margin-top:8px}details summary{cursor:pointer;color:var(--mu)}
+details li{margin:3px 0}
+@media(max-width:1100px){main{grid-template-columns:1fr}.bottom{grid-template-columns:1fr}}
+</style></head>
+<body>
+<header>
+  <h1>Grid storm · fleet dashboard</h1>
+  <span class="tag">CONCEPT · SYNTHETIC EXERCISE</span>
+  <button id="play">▶ Play</button>
+  <select id="spd" aria-label="Playback speed"><option value="2">2 min/s</option><option value="6" selected>6 min/s</option><option value="20">20 min/s</option></select>
+  <input type="range" id="tt" min="0" max="240" step="1" value="0" aria-label="Scenario time">
+  <div class="clock" id="clk">T+00:00</div>
+</header>
+<main>
+  <section class="pn">
+    <h2>Fleet · 5 sensor packages</h2>
+    <div id="fleet"></div>
+    <h2 style="margin-top:12px">Reports · all six available from start</h2>
+    <div id="reps"></div>
+    <details><summary>Assumptions and limits</summary>
+      <ul class="muted" style="padding-left:16px">
+        <li>All five start charged at hub SUBSTATION_07 at T+00:00.</li>
+        <li>Endurance 30 min per sortie; each sortie starts at full endurance.</li>
+        <li>Transit at an assumed 20 km/h. Times are set to fit that speed; the map draws straight-line transits.</li>
+        <li>Recharge takes 3 h on an energized line. Only LINE_024 is known de-energized; every other line is assumed live, not verified.</li>
+        <li>On a de-energized line a drone can hover-check only: no perch, no charge.</li>
+        <li>All sensor values are HYPOTHETICAL demo readings, not measurements.</li>
+        <li>Not for live use. Flying near energized lines needs regulatory approval and trained crews.</li>
+      </ul>
+    </details>
+  </section>
+  <section class="pn">
+    <h2>Study area · mapped 110 / 380 kV lines (click a line)</h2>
+    <svg id="map" viewBox="-6 -6 300 302" role="img" aria-label="Network map of study area"></svg>
+    <div class="muted" style="font-size:11px;margin-top:6px">Mapped data, not live status. Squares are substations; a substation marker shows the station area, not an exact connection point.</div>
+  </section>
+  <section class="pn" id="insp"></section>
+</main>
+<section class="bottom">
+  <div class="pn"><h2>Fleet timeline · flying, inspecting, charging</h2><svg id="gantt" viewBox="0 0 800 196"></svg></div>
+  <div class="pn"><h2>Event log · reports, decisions, reallocation</h2><ul class="log" id="log"></ul></div>
+</section>
+<script>
+const D=/*__DATA__*/null;
+const $=i=>document.getElementById(i);
+const HUB=D.hub;
+const SEG=Object.fromEntries(D.segs.map(s=>[s.id,s]));
+const P=(x,y)=>[(x-10.45)*666.5,(48.38-y)*1000];
+const pl=pts=>pts.map(p=>P(p[0],p[1]).map(v=>v.toFixed(1)).join(',')).join('L');
+const polyD=pts=>'M'+pl(pts)+'Z', lineD=pts=>'M'+pl(pts);
+const anchor=id=>{const p=SEG[id].pts;return p[Math.floor(p.length/2)]};
+const lerp=(a,b,f)=>[a[0]+(b[0]-a[0])*f,a[1]+(b[1]-a[1])*f];
+const hh=t=>'T+'+String(Math.floor(t/60)).padStart(2,'0')+':'+String(t%60).padStart(2,'0');
+const MODE_KIND={alert:'#f43f5e',rep:'#f59e0b',realloc:'#5eead4',fly:'#8ea0bb',charge:'#8ea0bb',sys:'#8ea0bb'};
+
+// Scripted plan: [type, start_min, end_min, segment]. fly = transit to segment midpoint.
+const FLEET=[
+{id:'D1',c:'#5eead4',legs:[['fly',20,35,'LINE_026'],['hold',35,45,'LINE_026'],['charge',45,225,'LINE_026'],['fly',225,235,'LINE_026'],['hold',235,240,'LINE_026']]},
+{id:'D2',c:'#c4b5fd',legs:[['fly',44,50,'LINE_024'],['hold',50,58,'LINE_024'],['fly',58,68,'LINE_015'],['charge',68,248,'LINE_015']]},
+{id:'D3',c:'#fdba74',legs:[['fly',87,100,'LINE_036'],['hold',100,112,'LINE_036'],['charge',112,292,'LINE_036']]},
+{id:'D4',c:'#f9a8d4',legs:[['fly',111,122,'LINE_039'],['hold',122,132,'LINE_039'],['charge',132,312,'LINE_039']]},
+{id:'D5',c:'#93c5fd',legs:[['fly',45,58,'LINE_026'],['hold',58,70,'LINE_026'],['charge',70,250,'LINE_026']]}
+];
+// Hypothetical readings: [min, current_A, conductor_C, sway_mm, camera]
+const READ={
+LINE_026:[[36,182,47.1,.4,'No contact seen'],[38,181,58.6,.5,'Canopy blocks view'],[43,183,60.2,.4,'Canopy blocks view'],[58,181,59,.4,'Canopy blocks view'],[69,180,59.4,.4,'Canopy blocks view']],
+LINE_024:[[52,0,null,0,'No arc marks']],
+LINE_015:[[70,178,45.6,.4,'No contact seen']],
+LINE_036:[[103,176,43,.3,'No contact seen'],[110,176,43.4,.3,'No contact seen']],
+LINE_039:[[124,150,41,2.6,'No contact seen'],[130,150,41.2,2.4,'No contact seen']]
+};
+// Line status changes: [from_min, state]  w=watch a=alert o=no signal d=de-energized
+const LS={LINE_024:[[0,'d']],LINE_026:[[38,'w'],[44,'a']],LINE_039:[[124,'w']],LINE_036:[[103,'o']],LINE_015:[[70,'o']]};
+const MSG={a:['INSPECT recommended','Hotspot repeats on two passes at the same span. Recommend a ground inspection of that span. This is not a repair order: the cause is unconfirmed, and the overlap with R02 and R03 is location context only.'],
+w:['WATCH · repeat needed','Elevated reading on one pass. One pass is not enough to conclude anything.'],
+o:['No signal · not cleared','Readings are at baseline on the pass(es) flown. A single pass does not clear the whole span.'],
+d:['DE-ENERGIZED · known','Status check says de-energized, so a drone cannot perch or charge here. Its link to the R03 protection event is unknown.'],
+none:['No drone data yet','Not flown. Reports only place it inside an area, which is not a location.']};
+const EV=[
+[0,'Five drones charged at hub SUBSTATION_07 (assumed full).','sys'],
+[12,'R01 weather desk: strong gusts across the study area. Broad; no asset implication.','rep'],
+[20,'D1 departs for LINE_026. It lies inside the R02 and R03 areas, but no line ID was given.','fly'],
+[31,'R02 caller: branch on access track; tree near an unidentified route.','rep'],
+[35,'D1 on station, LINE_026: first pass.','fly'],
+[38,'D1 conductor 58.6 °C vs ~47 °C baseline. Watch.','alert'],
+[43,'D1 second pass repeats the hotspot (60.2 °C). Camera blocked by canopy.','alert'],
+[44,'R03 protection event. LINE_024 known de-energized. ALERT: inspect LINE_026 span.','alert'],
+[44,'D2 departs to hover-check LINE_024 (cannot perch or charge there).','fly'],
+[45,'D1 lands on LINE_026 to recharge (3 h). D5 leaves reserve to hold watch on the hotspot.','realloc'],
+[50,'D2 hover-check LINE_024: 0 A, no arc marks.','fly'],
+[58,'D5 on station, LINE_026. D2 flies on to energized perch LINE_015.','realloc'],
+[63,'R04 orange flash, low confidence (generator test unverified). Not dispatched; site log requested.','rep'],
+[68,'D2 perches on LINE_015 and starts a 3 h recharge.','fly'],
+[70,'D5 perches on LINE_026 to charge. Reserve now spent.','charge'],
+[87,'R05 ticking and thermal contrast, east-central. D3 departs for LINE_036.','rep'],
+[100,'D3 on station, LINE_036: no current or temperature change. One pass only.','fly'],
+[111,'R06 conductor motion, NE. D4 departs for LINE_039.','rep'],
+[124,'D4 on station, LINE_039: sway 2.6 mm vs 0.4 baseline, no temperature change. Repeat pass not possible before its recharge.','alert'],
+[225,'D1 back in service after 3 h recharge. Reassigned to re-check LINE_026 after the inspection request.','realloc']
+];
+
+const M=$('map');
+let h=`<path d="${polyD(D.storm)}" class="storm"/>`;
+D.reps.forEach(r=>h+=`<path d="${polyD(r.poly)}" class="rep" data-rep="${r.id}"><title>${r.id}</title></path>`);
+D.segs.forEach(s=>h+=`<path d="${lineD(s.pts)}" class="seg${s.kv>300?' hv':''}" data-id="${s.id}"><title>${s.id} · ${s.kv} kV · ${s.km} km</title></path>`);
+h+=`<path id="halo" class="halo" d=""/><g id="sb"></g><g id="pg"></g><g id="dg"></g>`;
+M.innerHTML=h;
+D.subs.forEach(n=>{const[x,y]=P(n.lon,n.lat);$('sb').insertAdjacentHTML('beforeend',`<rect x="${(x-1.3).toFixed(1)}" y="${(y-1.3).toFixed(1)}" width="2.6" height="2.6" class="sub"><title>${n.name||n.id}</title></rect>`)});
+
+let T=0,playing=false,last=0,spd=6,sel='LINE_026',hl=null;
+
+function st(d,t){
+  let cur=HUB,prev=null,sS=0;
+  for(const L of d.legs){
+    const[ty,s,e,seg]=L,a=anchor(seg);
+    if(ty==='fly'&&(!prev||prev[0]==='charge'))sS=s;
+    if(t<s)return{mode:'ready',pos:cur,seg:prev?prev[3]:null,L:null,left:0};
+    if(t<e)return{mode:ty,pos:ty==='fly'?lerp(cur,a,(t-s)/(e-s)):a,seg,L,left:ty==='charge'?e-t:30-(t-sS)};
+    cur=a;prev=L;
+  }
+  return{mode:'ready',pos:cur,seg:prev?prev[3]:null,L:null,left:0};
+}
+function lstate(id,t){let s=null;(LS[id]||[]).forEach(([t0,x])=>{if(t>=t0)s=x});return s}
+function pick(id){const s=st(FLEET.find(d=>d.id===id),T);if(s.seg){sel=s.seg;render()}}
+function card(d,s,t){
+  let label,bar,sub='';
+  if(s.mode==='fly'){label='FLYING';bar=s.left/30;sub='endurance '+Math.max(0,Math.round(s.left))+' min left'}
+  else if(s.mode==='hold'){label=D.de.includes(s.seg)?'HOVER-CHECK':'ON STATION';bar=s.left/30;sub='endurance '+Math.max(0,Math.round(s.left))+' min left'}
+  else if(s.mode==='charge'){label='CHARGING';bar=1-s.left/180;sub='ready '+hh(s.L[2])}
+  else{label=(d.id==='D5'&&t<45)?'RESERVE':'READY';bar=1;sub=''}
+  return `<div class="drone" onclick="pick('${d.id}')"><div class="row"><span><i class="dot" style="background:${d.c}"></i><b>${d.id}</b> <span class="muted">${s.seg||'hub'}</span></span><span class="pill">${label}</span></div><div class="bar"><i style="width:${Math.max(0,Math.min(1,bar))*100}%;background:${d.c}"></i></div><div class="muted" style="font-size:11px">${sub}</div></div>`;
+}
+function insp(t){
+  const s=SEG[sel],ls=lstate(sel,t)||'none',rd=(READ[sel]||[]).filter(r=>r[0]<=t).pop();
+  const reps=D.reps.filter(r=>r.lines.includes(sel)).map(r=>'R'+r.id.slice(-2)+' · '+r.short).join('<br>')||'No report area contains this line midpoint.';
+  const v=(x,u,d=1)=>x==null?'—':x.toFixed(d)+u;
+  const alert=ls==='a'?`<div class="alert"><div class="hyp">HYPOTHETICAL defect alert · demo values</div><b>Conductor hotspot near the span midpoint</b><div class="muted">About 12–13 K above baseline on two passes. Sway normal. Camera blocked by canopy. Nothing yet confirms a tree, a damaged connection, or a clearance issue.</div></div>`:'';
+  $('insp').innerHTML=`<h2>Line inspector</h2>
+  <div class="insp-h">${sel}</div>
+  <div class="muted">${s.kv} kV · ${s.km} km · component ${s.c}</div>
+  <div class="muted" style="font-size:12px">${s.f} → ${s.t}</div>
+  <div class="badge" style="background:${ls==='a'?'#4c0519':ls==='w'?'#422006':ls==='d'?'#1e293b':'#0c2b2a'};color:${ls==='a'?'#fecdd3':ls==='w'?'#fde68a':ls==='d'?'#cbd5e1':'#99f6e4'}">${MSG[ls][0]}</div>
+  <div style="font-size:12px">${MSG[ls][1]}</div>
+  ${alert}
+  <h2 style="margin-top:12px">Readings at ${hh(t)} <span class="hyp">hypothetical</span></h2>
+  <table><tr><td>Line current</td><td>${rd?v(rd[1],' A',0):'—'}</td></tr>
+  <tr><td>Conductor temperature</td><td>${rd?v(rd[2],' °C'):'—'}</td></tr>
+  <tr><td>Sway / vibration</td><td>${rd?v(rd[3],' mm'):'—'}</td></tr>
+  <tr><td>Camera</td><td>${rd?rd[4]:'—'}</td></tr></table>
+  <div class="muted" style="font-size:11px;margin-top:4px">${rd?'Last sample '+hh(rd[0]):'No sample yet on this line'}</div>
+  <h2 style="margin-top:12px">Report areas touching this line</h2><div style="font-size:12px">${reps}</div>
+  <div class="rules"><b>When to act</b><br><b>Inspect</b>: the same reading repeats on two passes and a second source (sensor, report or protection event) points at the same span.<br><b>Investigate</b>: one pass, or passes disagree. Fly a repeat.<br><b>Clear</b>: repeat passes match baseline with an unobstructed camera view.</div>`;
+}
+function reps(t){
+  $('reps').innerHTML=D.reps.map(r=>`<button class="rep${hl===r.id?' on':''}" style="opacity:${r.t<=t?1:.45}" onclick="hl=hl==='${r.id}'?null:'${r.id}';render()"><b>R${r.id.slice(-2)}</b> <span class="muted">${hh(r.t)}</span><br><span style="font-size:11px">${r.short}</span></button>`).join('');
+}
+function gantt(t){
+  const X=x=>90+x/240*690;let g='';
+  for(let k=0;k<=240;k+=60)g+=`<line x1="${X(k)}" x2="${X(k)}" y1="16" y2="186" class="gl"/><text x="${X(k)}" y="11" text-anchor="middle" class="ax">T+${k/60}h</text>`;
+  D.reps.forEach(r=>g+=`<text x="${X(r.t)}" y="24" text-anchor="middle" class="rt">R${r.id.slice(-2)}</text>`);
+  FLEET.forEach((d,i)=>{const y=34+i*30;g+=`<text x="4" y="${y+11}" class="dl" fill="${d.c}">${d.id}</text>`;
+    d.legs.forEach(([ty,s,e,seg])=>{const x1=X(s),w=X(Math.min(e,240))-x1;if(w<=0)return;
+      g+=`<rect x="${x1.toFixed(1)}" y="${y}" width="${w.toFixed(1)}" height="15" rx="3" ${ty==='charge'?'class="ch"':`style="fill:${d.c};opacity:${ty==='fly'?.45:.95}"`}><title>${d.id} ${ty} ${seg} ${hh(s)}–${hh(e)}</title></rect>`})});
+  g+=`<line x1="${X(t)}" x2="${X(t)}" y1="16" y2="186" class="cur"/>`;
+  $('gantt').innerHTML=g;
+}
+function log(t){$('log').innerHTML=EV.map(([et,txt,k])=>`<li style="opacity:${et<=t?1:.4}"><b style="border-color:${MODE_KIND[k]}">${hh(et)}</b>${txt}</li>`).join('')}
+function render(){
+  $('clk').textContent=hh(Math.floor(T));$('tt').value=T;
+  $('fleet').innerHTML=FLEET.map(d=>card(d,st(d,T),T)).join('');
+  document.querySelectorAll('.seg').forEach(el=>{const id=el.dataset.id,s=lstate(id,T);el.setAttribute('class','seg'+(SEG[id].kv>300?' hv':'')+(s?' '+s:''))});
+  document.querySelectorAll('path.rep').forEach(el=>el.setAttribute('class','rep'+(el.dataset.rep===hl?' on':'')));
+  $('halo').setAttribute('d',lineD(SEG[sel].pts));
+  $('pg').innerHTML=Object.keys(LS).filter(id=>lstate(id,T)==='a').map(id=>{const[x,y]=P(...anchor(id));return `<circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="4" class="pulse"/>`}).join('');
+  $('dg').innerHTML=FLEET.map(d=>{const s=st(d,T),[x,y]=P(...s.pos);return `<circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="2.6" fill="${d.c}" stroke="#0a1019" stroke-width=".6"/><text x="${(x+3.5).toFixed(1)}" y="${(y-2).toFixed(1)}" font-size="4.5" font-weight="700" fill="${d.c}">${d.id}</text>`}).join('');
+  insp(T);reps(T);gantt(T);log(T);
+}
+M.addEventListener('click',e=>{const id=e.target.dataset.id;if(id){sel=id;render();return}});
+$('play').onclick=()=>{if(T>=240)T=0;playing=!playing;$('play').textContent=playing?'❚❚ Pause':'▶ Play';last=0;if(playing)requestAnimationFrame(tick)};
+function tick(ts){if(!playing)return;const dt=last?(ts-last)/1000:0;last=ts;T=Math.min(240,T+dt*spd);render();if(T>=240){playing=false;$('play').textContent='▶ Replay';return}requestAnimationFrame(tick)}
+$('tt').oninput=e=>{T=+e.target.value;render()};
+$('spd').onchange=e=>{spd=+e.target.value};
+render();
+</script>
+</body></html>
